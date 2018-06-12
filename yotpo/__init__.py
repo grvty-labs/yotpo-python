@@ -46,17 +46,16 @@ _original_module = _sys.modules[__name__]
 
 def authenticate():
     response = requests.post(
-        # 'https://requestb.in/1o4mcv21',
         'https://api.yotpo.com/oauth/token',
-        data={
-          'client_id': api_key,
-          'client_secret': api_secret,
-          'grant_type': 'client_credentials'
-        }
-    )
+        headers={"Content-Type": "application/json"},
+        data=json.dumps({
+          "client_id": api_key,
+          "client_secret": api_secret,
+          "grant_type": "client_credentials"
+        }))
 
     responseJSON = response.json()
-    if response.status_code != 200:
+    if int(response.status_code) != 200:
         raise YotpoException(response)
 
     else:
@@ -89,20 +88,18 @@ def setPlatform(domain):
     global api_key
     global platform_object
     response = requests.post(
-        'https://api.yotpo.com/apps/{}/account_platform'.format(
-            api_key
-        ),
-        data={
+        'https://api.yotpo.com/apps/{}/account_platform'.format(api_key),
+        headers={"Content-Type": "application/json"},
+        data=json.dumps({
           'utoken': get_access_token(),
           'account_platform': {
             'shop_domain': domain,
             'platform_type_id': '2',
           }
-        }
-    )
+        }))
 
     responseJSON = response.json()
-    if response.status_code != 200:
+    if int(response.status_code) != 200:
         raise YotpoException(response)
 
     else:

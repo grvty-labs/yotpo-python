@@ -61,13 +61,13 @@ class Product:
 
     def to_json(self):
         return {
-            'name': self.name,
             'url': self.url,
+            'name': self.name,
             'image': self.image,
             'description': self.description,
             'price': self.price,
-            'product_tags': self.tags,
             'specs': self.specs,
+            'product_tags': self.tags,
         }
 
 
@@ -83,6 +83,7 @@ class ProductGroup:
             '{}/{}/products_groups'.format(
                 yotpo.api_base_v1,
                 yotpo.api_key),
+            headers={"Content-Type": "application/json"},
             data={
                 'utoken': yotpo.get_access_token(),
                 'group_name': self.name,
@@ -132,21 +133,25 @@ class Purchase:
         if not self.user_email or not self.user_name or not self.currency_iso \
                 or not self.order_id or not self.products:
             raise Exception('Data does not have the required keys')
+        data = json.dumps({
+            'validate_data': True,
+            'platform': yotpo.platform,
+            'utoken': yotpo.get_access_token(),
+            'email': self.user_email,
+            'customer_name': self.user_name,
+            'order_id': self.order_id,
+            'order_date': datetime.now().strftime('%Y-%m-%d'),
+            'currency_iso': self.currency_iso,
+            'products': self.build_products_json(),
+        })
         response = requests.post(
             '{}/{}/purchases'.format(
                 yotpo.api_base,
                 yotpo.api_key),
-            data={
-                'validate_data': True,
-                'platform': yotpo.platform,
-                'utoken': yotpo.get_access_token(),
-                'email': self.user_email,
-                'customer_name': self.user_name,
-                'order_id': self.order_id,
-                'currency_iso': self.currency_iso,
-                'products': self.build_products_json(),
-            })
-        if response.status_code != 200:
+            data=data,
+            headers={"Content-Type": "application/json"},
+            timeout=30)
+        if int(response.status_code) != 200:
             raise YotpoException(response)
         return True
 
