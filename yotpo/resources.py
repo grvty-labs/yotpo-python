@@ -101,7 +101,6 @@ class ProductGroup:
                 yotpo.get_access_token()))
         if response.status_code != 200:
             raise YotpoException(response)
-        print(response.json())
         return response.json()['response']['products_groups']
 
 
